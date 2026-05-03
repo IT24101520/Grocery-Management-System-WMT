@@ -290,6 +290,18 @@ const requestRefund = async (req, res) => {
   }
 };
 
+const deletePayment = async (req, res) => {
+  try {
+    const payment = await Payment.findById(req.params.id);
+    if (!payment) return res.status(404).json({ message: "Payment not found" });
+
+    await payment.deleteOne();
+    return res.json({ message: "Payment removed" });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 module.exports = {
   createStripePaymentIntent,
   makePayment,
@@ -297,4 +309,5 @@ module.exports = {
   getMyPayments,
   updateStatus,
   requestRefund,
+  deletePayment,
 };

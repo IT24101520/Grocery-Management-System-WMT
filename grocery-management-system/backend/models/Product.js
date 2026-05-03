@@ -16,6 +16,10 @@ const productSchema = new mongoose.Schema({
     type: Number,
     required: [true, "Stock quantity is required"],
   },
+  stockType: {
+    type: String,
+    enum: ['Kilograms', 'liters', 'Packets', 'bottles'],
+  },
   imageUrl: {
     type: String,
   },

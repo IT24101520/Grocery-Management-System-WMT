@@ -94,4 +94,16 @@ const updateLocation = async (req, res) => {
   }
 };
 
-module.exports = { getAllTracking, getMyTracking, getByOrder, updateStatus, updateLocation };
+const deleteTracking = async (req, res) => {
+  try {
+    const record = await TrackingRecord.findById(req.params.id);
+    if (!record) return res.status(404).json({ message: "Tracking record not found" });
+
+    await record.deleteOne();
+    return res.json({ message: "Tracking record removed" });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+module.exports = { getAllTracking, getMyTracking, getByOrder, updateStatus, updateLocation, deleteTracking };

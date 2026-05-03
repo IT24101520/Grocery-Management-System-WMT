@@ -9,6 +9,7 @@ const {
   getMyPayments,
   updateStatus,
   requestRefund,
+  deletePayment,
 } = require("../controllers/paymentController");
 
 router.post("/stripe/create-intent", protect, createStripePaymentIntent);
@@ -17,5 +18,6 @@ router.get("/", protect, admin, getAllPayments);
 router.get("/my", protect, getMyPayments);                    // must be before /:id
 router.put("/:id/status", protect, admin, updateStatus);
 router.put("/:id/refund", protect, requestRefund);
+router.delete("/:id", protect, admin, deletePayment);
 
 module.exports = router;

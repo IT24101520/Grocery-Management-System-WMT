@@ -81,6 +81,20 @@ export default function AdminTrackingScreen() {
     } finally { setSaving(false); }
   };
 
+  const handleDelete = (id) => {
+    Alert.alert('Confirm Delete', 'Are you sure you want to delete this tracking record?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        try {
+          await api.delete(`/tracking/${id}`);
+          fetchRecords();
+        } catch (err) {
+          Alert.alert('Error', err.response?.data?.message || 'Failed to delete tracking');
+        }
+      }}
+    ]);
+  };
+
   const renderRecord = ({ item }) => {
     const orderId      = item.orderId?._id?.slice(-6).toUpperCase() || item._id.slice(-6).toUpperCase();
     const customerName = item.customerId?.name || 'Customer';
@@ -110,11 +124,19 @@ export default function AdminTrackingScreen() {
         ) : null}
         <Text style={S.updatedText}>Last updated: {fmtTs(item.updatedAt)}</Text>
 
-        {/* Update button */}
-        <TouchableOpacity style={S.updateBtn} onPress={() => openUpdate(item)} activeOpacity={0.8}>
-          <Ionicons name="refresh-outline" size={15} color="#ffffff" />
-          <Text style={S.updateBtnText}>Update Status</Text>
-        </TouchableOpacity>
+        {/* Actions */}
+        <View style={S.actionRow}>
+          <TouchableOpacity style={S.updateBtn} onPress={() => openUpdate(item)} activeOpacity={0.8}>
+            <Ionicons name="refresh-outline" size={15} color="#ffffff" />
+            <Text style={S.updateBtnText}>Update Status</Text>
+          </TouchableOpacity>
+          {item.currentStatus === 'Delivered' && (
+            <TouchableOpacity style={S.deleteBtn} onPress={() => handleDelete(item._id)} activeOpacity={0.8}>
+              <Ionicons name="trash-outline" size={15} color="#ef4444" />
+              <Text style={S.deleteBtnText}>Delete</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     );
   };
@@ -261,13 +283,20 @@ const S = StyleSheet.create({
   infoRow:       { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
   locationText:  { fontSize: 13, color: '#0f172a', fontWeight: '600', flex: 1 },
   updatedText:   { fontSize: 11, color: '#94a3b8', marginBottom: 10 },
+  actionRow:     { flexDirection: 'row', alignItems: 'center', gap: 10 },
   updateBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     backgroundColor: '#1B5E20', borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 8,
-    alignSelf: 'flex-start',
   },
   updateBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 13 },
+  deleteBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: '#fee2e2', borderRadius: 8,
+    paddingHorizontal: 14, paddingVertical: 8,
+    borderWidth: 1, borderColor: '#fecaca',
+  },
+  deleteBtnText: { color: '#ef4444', fontWeight: '600', fontSize: 13 },
 
   // ── Modal ───────────────────────────────────────────
   overlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },

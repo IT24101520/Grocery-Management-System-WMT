@@ -8,6 +8,7 @@ const {
   getByOrder,
   updateStatus,
   updateLocation,
+  deleteTracking,
 } = require("../controllers/trackingController");
 
 router.get("/", protect, admin, getAllTracking);
@@ -15,5 +16,6 @@ router.get("/my", protect, getMyTracking);                              // must 
 router.get("/:orderId", protect, getByOrder);
 router.put("/:orderId/status", protect, admin, updateStatus);
 router.put("/:orderId/location", protect, admin, updateLocation);
+router.delete("/:id", protect, admin, deleteTracking);
 
 module.exports = router;

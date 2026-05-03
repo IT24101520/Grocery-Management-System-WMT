@@ -76,6 +76,20 @@ export default function AdminSupportScreen() {
     } finally { setSaving(false); }
   };
 
+  const handleDelete = (id) => {
+    Alert.alert('Confirm Delete', 'Are you sure you want to delete this ticket?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        try {
+          await api.delete(`/support/${id}`);
+          fetchTickets();
+        } catch (err) {
+          Alert.alert('Error', err.response?.data?.message || 'Failed to delete ticket');
+        }
+      }}
+    ]);
+  };
+
   const renderTicket = ({ item }) => {
     const name        = item.customerId?.name || 'Customer';
     const hasResponse = !!item.adminResponse;
@@ -108,11 +122,19 @@ export default function AdminSupportScreen() {
         {/* Description preview */}
         <Text style={S.descPreview} numberOfLines={1}>{item.description}</Text>
 
-        {/* Respond button */}
-        <TouchableOpacity style={S.respondBtn} onPress={() => openRespond(item)} activeOpacity={0.8}>
-          <Ionicons name="chatbubble-outline" size={14} color="#ffffff" />
-          <Text style={S.respondBtnText}>{hasResponse ? 'Edit Response' : 'Respond'}</Text>
-        </TouchableOpacity>
+        {/* Actions */}
+        <View style={S.actionRow}>
+          <TouchableOpacity style={S.respondBtn} onPress={() => openRespond(item)} activeOpacity={0.8}>
+            <Ionicons name="chatbubble-outline" size={14} color="#ffffff" />
+            <Text style={S.respondBtnText}>{hasResponse ? 'Edit Response' : 'Respond'}</Text>
+          </TouchableOpacity>
+          {item.status === 'Resolved' && (
+            <TouchableOpacity style={S.deleteBtn} onPress={() => handleDelete(item._id)} activeOpacity={0.8}>
+              <Ionicons name="trash-outline" size={15} color="#ef4444" />
+              <Text style={S.deleteBtnText}>Delete</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     );
   };
@@ -303,13 +325,20 @@ const S = StyleSheet.create({
   },
   catText:     { fontSize: 11, color: '#64748b' },
   descPreview: { fontSize: 13, color: '#64748b', marginBottom: 12 },
+  actionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   respondBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     backgroundColor: '#1B5E20', borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 8,
-    alignSelf: 'flex-start',
   },
   respondBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 13 },
+  deleteBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: '#fee2e2', borderRadius: 8,
+    paddingHorizontal: 14, paddingVertical: 8,
+    borderWidth: 1, borderColor: '#fecaca',
+  },
+  deleteBtnText: { color: '#ef4444', fontWeight: '600', fontSize: 13 },
 
   // ── Modal ───────────────────────────────────────────
   overlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },

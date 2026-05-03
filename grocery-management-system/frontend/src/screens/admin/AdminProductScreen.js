@@ -15,9 +15,10 @@ import GreenButton from '../../components/GreenButton';
 import EmptyState from '../../components/EmptyState';
 import { shadows } from '../../theme/styles';
 
-const EMPTY_FORM = { name: '', description: '', price: '', stock: '', category: '', storeId: '' };
+const EMPTY_FORM = { name: '', description: '', price: '', stock: '', stockType: '', category: '', storeId: '' };
 const STATUS_BAR_H = Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight || 24);
 const PRODUCT_CATEGORIES = ['Fruits', 'Vegetables', 'Dairy', 'Bakery', 'Meat', 'Drinks', 'Other'];
+const STOCK_TYPES = ['Kilograms', 'liters', 'Packets', 'bottles'];
 
 export default function AdminProductScreen() {
   const [products, setProducts]     = useState([]);
@@ -32,6 +33,7 @@ export default function AdminProductScreen() {
   const [image, setImage]           = useState(null);
   const [saving, setSaving]         = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
+  const [stockTypeOpen, setStockTypeOpen] = useState(false);
 
   const fetchStores = async () => {
     try {
@@ -62,6 +64,7 @@ export default function AdminProductScreen() {
     setForm(EMPTY_FORM);
     setImage(null);
     setCategoryOpen(false);
+    setStockTypeOpen(false);
     setModalVisible(true);
   };
   const openEdit = (p) => {
@@ -71,11 +74,13 @@ export default function AdminProductScreen() {
       description: p.description || '',
       price: String(p.price),
       stock: String(p.stockQuantity),
+      stockType: p.stockType || '',
       category: p.category || '',
       storeId: p.store?._id || p.store || '',
     });
     setImage(null);
     setCategoryOpen(false);
+    setStockTypeOpen(false);
     setModalVisible(true);
   };
 
@@ -110,6 +115,7 @@ export default function AdminProductScreen() {
         description: form.description,
         price: parsedPrice,
         stockQuantity: parsedStock,
+        stockType: form.stockType,
         category: form.category,
         storeId: form.storeId,
       };
@@ -157,7 +163,7 @@ export default function AdminProductScreen() {
           ) : null}
           {item.store?.name ? <Text style={S.storeText}>{item.store.name}</Text> : null}
           <Text style={S.productPrice}>LKR {Number(item.price).toFixed(2)}</Text>
-          <Text style={S.stockText}>Stock: {item.stockQuantity}</Text>
+          <Text style={S.stockText}>Stock: {item.stockQuantity} {item.stockType || ''}</Text>
         </View>
         <View style={S.cardActions}>
           <TouchableOpacity style={S.editBtn} onPress={() => openEdit(item)} activeOpacity={0.7}>
@@ -314,6 +320,48 @@ export default function AdminProductScreen() {
             </View>
             <InputField label="Price *" placeholder="0.00" value={form.price} onChangeText={v => setForm(f => ({ ...f, price: v }))} keyboardType="decimal-pad" leftIcon="cash-outline" />
             <InputField label="Stock Quantity *" placeholder="0" value={form.stock} onChangeText={v => setForm(f => ({ ...f, stock: v }))} keyboardType="numeric" leftIcon="layers-outline" />
+            
+            <Text style={S.fieldLabel}>Stock Type</Text>
+            <View style={S.dropdownWrap}>
+              <TouchableOpacity
+                style={[S.dropdownButton, stockTypeOpen && S.dropdownButtonActive]}
+                onPress={() => setStockTypeOpen(open => !open)}
+                activeOpacity={0.75}
+              >
+                <View style={S.dropdownLeft}>
+                  <Ionicons name="scale-outline" size={18} color={form.stockType ? '#1B5E20' : '#94a3b8'} />
+                  <Text style={[S.dropdownText, !form.stockType && S.dropdownPlaceholder]}>
+                    {form.stockType || 'Select stock type'}
+                  </Text>
+                </View>
+                <Ionicons name={stockTypeOpen ? 'chevron-up' : 'chevron-down'} size={18} color="#64748b" />
+              </TouchableOpacity>
+
+              {stockTypeOpen && (
+                <View style={S.dropdownMenu}>
+                  {STOCK_TYPES.map(type => {
+                    const selected = form.stockType === type;
+                    return (
+                      <TouchableOpacity
+                        key={type}
+                        style={[S.dropdownOption, selected && S.dropdownOptionActive]}
+                        onPress={() => {
+                          setForm(f => ({ ...f, stockType: type }));
+                          setStockTypeOpen(false);
+                        }}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={[S.dropdownOptionText, selected && S.dropdownOptionTextActive]}>
+                          {type}
+                        </Text>
+                        {selected ? <Ionicons name="checkmark-circle" size={18} color="#1B5E20" /> : null}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+
             <InputField label="Description" placeholder="Describe this product..." value={form.description} onChangeText={v => setForm(f => ({ ...f, description: v }))} leftIcon="document-text-outline" multiline numberOfLines={3} />
 
             {/* Image picker */}

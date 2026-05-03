@@ -85,4 +85,16 @@ const updateStatus = async (req, res) => {
   }
 };
 
-module.exports = { createTicket, getAllTickets, getMyTickets, adminRespond, updateStatus };
+const deleteTicket = async (req, res) => {
+  try {
+    const ticket = await SupportTicket.findById(req.params.id);
+    if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+
+    await ticket.deleteOne();
+    return res.json({ message: "Ticket removed" });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+module.exports = { createTicket, getAllTickets, getMyTickets, adminRespond, updateStatus, deleteTicket };

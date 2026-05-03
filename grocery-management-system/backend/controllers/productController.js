@@ -41,7 +41,7 @@ const getProduct = async (req, res) => {
 };
 
 const createProduct = async (req, res) => {
-  const { name, price, stockQuantity, description, category, store, storeId, imageBase64 } = req.body;
+  const { name, price, stockQuantity, stockType, description, category, store, storeId, imageBase64 } = req.body;
   const selectedStore = store || storeId;
 
   if (!name || price === undefined || stockQuantity === undefined || !selectedStore) {
@@ -67,6 +67,7 @@ const createProduct = async (req, res) => {
       category,
       store: selectedStore,
     };
+    if (stockType) productData.stockType = stockType;
     if (imageBase64) productData.imageUrl = imageBase64;
 
     const product = await Product.create(productData);

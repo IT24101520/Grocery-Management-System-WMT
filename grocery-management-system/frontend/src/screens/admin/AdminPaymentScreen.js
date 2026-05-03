@@ -47,16 +47,30 @@ export default function AdminPaymentScreen() {
     } finally { setUpdatingId(null); }
   };
 
+  const handleDelete = (id) => {
+    Alert.alert('Confirm Delete', 'Are you sure you want to delete this payment record?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        try {
+          await api.delete(`/payments/${id}`);
+          fetchPayments();
+        } catch (err) {
+          Alert.alert('Error', err.response?.data?.message || 'Failed to delete payment');
+        }
+      }}
+    ]);
+  };
+
   const visible = payments.filter(p => {
-    if (tab === 'Pending')    return p.status === 'Pending';
-    if (tab === 'Successful') return p.status === 'Successful';
-    if (tab === 'Refunds')    return p.refundRequested;
+    if (tab === 'Pending')    return p.status?.toLowerCase() === 'pending';
+    if (tab === 'Successful') return p.status?.toLowerCase() === 'successful';
+    if (tab === 'Refunds')    return p.refundRequested || p.status?.toLowerCase() === 'refunded';
     return true;
   });
 
-  const totalRevenue  = payments.filter(p => p.status === 'Successful').reduce((s, p) => s + Number(p.amount), 0);
-  const pendingCount  = payments.filter(p => p.status === 'Pending').length;
-  const refundCount   = payments.filter(p => p.refundRequested).length;
+  const totalRevenue  = payments.filter(p => p.status?.toLowerCase() === 'successful').reduce((s, p) => s + Number(p.amount), 0);
+  const pendingCount  = payments.filter(p => p.status?.toLowerCase() === 'pending').length;
+  const refundCount   = payments.filter(p => p.refundRequested || p.status?.toLowerCase() === 'refunded').length;
 
   const renderPayment = ({ item }) => {
     const isRefund = item.refundRequested;
@@ -125,19 +139,27 @@ export default function AdminPaymentScreen() {
           </View>
         ) : null}
 
-        {/* Status chips */}
-        <View style={S.chipsRow}>
-          {STATUSES.map(s => (
-            <TouchableOpacity
-              key={s}
-              style={[S.statusChip, item.status === s && S.statusChipActive]}
-              onPress={() => item.status !== s && handleStatusChange(item._id, s)}
-              disabled={updatingId === item._id}
-              activeOpacity={0.75}
-            >
-              <Text style={[S.statusChipText, item.status === s && S.statusChipTextActive]}>{s}</Text>
+        {/* Status chips and Delete button */}
+        <View style={S.actionRow}>
+          <View style={S.chipsRow}>
+            {STATUSES.map(s => (
+              <TouchableOpacity
+                key={s}
+                style={[S.statusChip, item.status === s && S.statusChipActive]}
+                onPress={() => item.status !== s && handleStatusChange(item._id, s)}
+                disabled={updatingId === item._id}
+                activeOpacity={0.75}
+              >
+                <Text style={[S.statusChipText, item.status === s && S.statusChipTextActive]}>{s}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {['Successful', 'Failed', 'Refunded'].includes(item.status) && (
+            <TouchableOpacity style={S.deleteBtn} onPress={() => handleDelete(item._id)} activeOpacity={0.8}>
+              <Ionicons name="trash-outline" size={15} color="#ef4444" />
+              <Text style={S.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
-          ))}
+          )}
         </View>
         {updatingId === item._id && (
           <ActivityIndicator size="small" color="#1B5E20" style={{ marginTop: 6 }} />
@@ -286,7 +308,8 @@ const S = StyleSheet.create({
   },
   noteText: { flex: 1, fontSize: 12, color: '#64748b', lineHeight: 17 },
 
-  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  actionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, flex: 1 },
   statusChip: {
     borderWidth: 1,
     borderColor: '#e2e8f0',
@@ -298,4 +321,12 @@ const S = StyleSheet.create({
   statusChipActive:     { backgroundColor: '#1B5E20', borderColor: '#1B5E20' },
   statusChipText:       { fontSize: 11, color: '#64748b' },
   statusChipTextActive: { color: '#ffffff', fontWeight: 'bold' },
+  deleteBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: '#fee2e2', borderRadius: 8,
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderWidth: 1, borderColor: '#fecaca',
+    marginLeft: 10,
+  },
+  deleteBtnText: { color: '#ef4444', fontWeight: '600', fontSize: 12 },
 });
