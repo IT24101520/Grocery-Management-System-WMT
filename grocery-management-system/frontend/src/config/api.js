@@ -1,7 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const SERVER_URL = "http://10.11.137.67:5001";
+export const SERVER_URL = "https://grocery-management-system-wmt.onrender.com";
 const BASE_URL = `${SERVER_URL}/api`;
 
 const api = axios.create({
