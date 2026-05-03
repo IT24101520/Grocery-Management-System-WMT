@@ -106,6 +106,20 @@ export default function AdminOrderScreen() {
     } finally { setSaving(false); }
   };
 
+  const handleDelete = (id) => {
+    Alert.alert('Confirm Delete', 'Are you sure you want to permanently delete this cancelled order?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        try {
+          await api.delete(`/orders/${id}/remove`);
+          fetchOrders();
+        } catch (err) {
+          Alert.alert('Error', err.response?.data?.message || 'Failed to delete order');
+        }
+      }}
+    ]);
+  };
+
   const renderOrder = ({ item }) => {
     const isExpanded  = expanded === item._id;
     const shortId     = `#${item._id.slice(-6).toUpperCase()}`;
@@ -178,10 +192,17 @@ export default function AdminOrderScreen() {
             <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={14} color="#64748b" />
             <Text style={S.viewDetailText}>{isExpanded ? 'Collapse' : 'View Details'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={S.editBtn} onPress={() => openEdit(item)} activeOpacity={0.7}>
-            <Ionicons name="pencil" size={14} color="#1d4ed8" />
-            <Text style={S.editBtnText}>Edit</Text>
-          </TouchableOpacity>
+          {item.orderStatus === 'Cancelled' ? (
+            <TouchableOpacity style={S.deleteBtn} onPress={() => handleDelete(item._id)} activeOpacity={0.7}>
+              <Ionicons name="trash" size={14} color="#ef4444" />
+              <Text style={S.deleteBtnText}>Delete</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={S.editBtn} onPress={() => openEdit(item)} activeOpacity={0.7}>
+              <Ionicons name="pencil" size={14} color="#1d4ed8" />
+              <Text style={S.editBtnText}>Edit</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
@@ -390,14 +411,13 @@ const S = StyleSheet.create({
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 5, height: 34, borderRadius: 8, backgroundColor: '#ffffff',
   },
-  viewDetailText: { fontSize: 12, color: '#64748b', fontWeight: '600' },
-  editBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: 14, height: 34, borderRadius: 8, backgroundColor: '#eff6ff',
-  },
-  editBtnText: { fontSize: 12, color: '#1d4ed8', fontWeight: '600' },
+  viewDetailText: { fontSize: 13, fontWeight: '600', color: '#64748b' },
+  editBtn:        { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: '#eff6ff', borderRadius: 6 },
+  editBtnText:    { fontSize: 13, fontWeight: '600', color: '#1d4ed8' },
+  deleteBtn:      { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: '#fef2f2', borderRadius: 6 },
+  deleteBtnText:  { fontSize: 13, fontWeight: '600', color: '#ef4444' },
 
-  // ── Modal ───────────────────────────────────────────
+  // ── Modals ───────────────────────────────────────────
   overlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalCard: {
     backgroundColor: '#ffffff',

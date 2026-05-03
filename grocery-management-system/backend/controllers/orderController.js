@@ -251,15 +251,29 @@ const confirmOrder = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to confirm this order" });
     }
 
-    if (order.orderStatus === "Cancelled") {
-      return res.status(400).json({ message: "Cancelled orders cannot be confirmed" });
+    if (order.orderStatus !== "Pending Confirmation") {
+      return res.status(400).json({ message: "Order is not pending confirmation" });
     }
 
-    order.orderStatus = "Placed";
-    order.confirmedAt = new Date();
+    order.orderStatus = "Pending Processing";
     await order.save();
-
     return res.json(order);
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+const deleteOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.orderStatus !== "Cancelled") {
+      return res.status(400).json({ message: "Only cancelled orders can be deleted" });
+    }
+
+    await order.deleteOne();
+    return res.json({ message: "Order deleted successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -274,4 +288,5 @@ module.exports = {
   updateDeliverySchedule,
   cancelOrder,
   confirmOrder,
+  deleteOrder,
 };

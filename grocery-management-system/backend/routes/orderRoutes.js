@@ -11,6 +11,7 @@ const {
   updateDeliverySchedule,
   cancelOrder,
   confirmOrder,
+  deleteOrder,
 } = require("../controllers/orderController");
 
 router.post("/", protect, createOrder);
@@ -21,5 +22,6 @@ router.put("/:id/confirm", protect, confirmOrder);
 router.put("/:id/delivery", protect, admin, updateDeliverySchedule);
 router.put("/:id", protect, editOrder);
 router.delete("/:id", protect, cancelOrder);
+router.delete("/:id/remove", protect, admin, deleteOrder);
 
 module.exports = router;
