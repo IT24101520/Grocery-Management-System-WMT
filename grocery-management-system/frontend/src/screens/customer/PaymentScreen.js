@@ -3,11 +3,12 @@ import {
   View, Text, TouchableOpacity, StyleSheet,
   ScrollView, FlatList, Modal, ActivityIndicator,
   Alert, KeyboardAvoidingView, Platform,
-  TextInput,
+  TextInput, Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useStripe } from '@stripe/stripe-react-native/lib/commonjs/hooks/useStripe';
-import api from '../../config/api';
+import api, { getImageUri } from '../../config/api';
 import AppHeader from '../../components/AppHeader';
 import GreenButton from '../../components/GreenButton';
 import EmptyState from '../../components/EmptyState';
@@ -40,6 +41,7 @@ export default function PaymentScreen({ route, navigation }) {
   const [pickerVisible, setPickerVisible] = useState(false);
   const [onlineRef, setOnlineRef]         = useState('');
   const [cashNote, setCashNote]           = useState('');
+  const [transactionImage, setTransactionImage] = useState(null);
 
   const goToTracking = (orderId) => {
     navigation.getParent()?.navigate('Tracking', { orderId });
@@ -83,17 +85,22 @@ export default function PaymentScreen({ route, navigation }) {
 
     setLoading(true);
     try {
-      await api.post('/payments', {
+      const payload = {
         orderId: selectedOrder._id,
         amount:  selectedOrder.totalAmount,
         method,
         transactionReference: method === 'online' ? onlineRef.trim() : undefined,
         paymentNote: method === 'cash' ? cashNote.trim() : undefined,
-      });
+      };
+      if (method === 'online' && transactionImage) {
+        payload.transactionImageBase64 = `data:${transactionImage.mimeType || 'image/jpeg'};base64,${transactionImage.base64}`;
+      }
+      await api.post('/payments', payload);
       goToTracking(selectedOrder._id);
       setSelectedOrder(null);
       setOnlineRef('');
       setCashNote('');
+      setTransactionImage(null);
     } catch (err) {
       Alert.alert(
         'Payment Failed',
@@ -183,6 +190,32 @@ export default function PaymentScreen({ route, navigation }) {
             placeholder="e.g. TXN-204578"
             placeholderTextColor="#94a3b8"
           />
+
+          <Text style={[S.inputLabel, { marginTop: 12 }]}>Transaction Image (Optional)</Text>
+          {transactionImage?.uri ? (
+            <TouchableOpacity style={S.imagePreviewWrap} onPress={async () => {
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'], allowsEditing: true, aspect: [4, 3], quality: 0.7, base64: true,
+              });
+              if (!result.canceled) setTransactionImage(result.assets[0]);
+            }} activeOpacity={0.85}>
+              <Image source={{ uri: transactionImage.uri }} style={S.imagePreview} />
+              <View style={S.imageOverlay}>
+                <Ionicons name="camera-outline" size={20} color="#ffffff" />
+                <Text style={S.imageOverlayText}>Change Photo</Text>
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={S.imagePicker} onPress={async () => {
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'], allowsEditing: true, aspect: [4, 3], quality: 0.7, base64: true,
+              });
+              if (!result.canceled) setTransactionImage(result.assets[0]);
+            }} activeOpacity={0.8}>
+              <Ionicons name="camera-outline" size={32} color="#94a3b8" />
+              <Text style={S.imagePickerText}>Add Photo</Text>
+            </TouchableOpacity>
+          )}
         </View>
       );
     }
@@ -657,4 +690,11 @@ const S = StyleSheet.create({
   orderRowAmount: { fontSize: 15, fontWeight: 'bold', color: '#2E7D32' },
   orderRowItems:  { fontSize: 12, color: '#94a3b8', marginTop: 2 },
   noOrders:       { textAlign: 'center', color: '#64748b', padding: 20, fontSize: 14 },
+  
+  imagePreviewWrap: { height: 140, borderRadius: 12, overflow: 'hidden', position: 'relative', marginTop: 4 },
+  imagePreview: { width: '100%', height: '100%', resizeMode: 'cover' },
+  imageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.45)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8 },
+  imageOverlayText: { color: '#ffffff', fontWeight: '600', fontSize: 13 },
+  imagePicker: { height: 100, borderWidth: 2, borderColor: '#cbd5e1', borderStyle: 'dashed', borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff', gap: 6, marginTop: 4 },
+  imagePickerText: { fontSize: 14, fontWeight: '600', color: '#64748b' },
 });

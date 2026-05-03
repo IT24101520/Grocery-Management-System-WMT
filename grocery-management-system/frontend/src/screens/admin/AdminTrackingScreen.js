@@ -7,7 +7,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from '@react-navigation/native';
-import api from '../../config/api';
+import api, { getImageUri } from '../../config/api';
 import AppHeader from '../../components/AppHeader';
 import StatCard from '../../components/StatCard';
 import StatusBadge from '../../components/StatusBadge';
@@ -131,6 +131,13 @@ export default function AdminTrackingScreen() {
           </View>
         ) : null}
         <Text style={S.updatedText}>Last updated: {fmtTs(item.updatedAt)}</Text>
+
+        {item.confirmationImage ? (
+          <View style={{ marginTop: 10, marginBottom: 4 }}>
+            <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '700', marginBottom: 4 }}>Confirmation Image</Text>
+            <Image source={{ uri: getImageUri(item.confirmationImage) }} style={{ width: '100%', height: 120, borderRadius: 8 }} />
+          </View>
+        ) : null}
 
         {/* Actions */}
         <View style={S.actionRow}>

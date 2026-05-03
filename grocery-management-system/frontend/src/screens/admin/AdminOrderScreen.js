@@ -2,11 +2,11 @@ import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   Modal, TextInput, ScrollView, ActivityIndicator, Alert, RefreshControl,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import api from '../../config/api';
+import api, { getImageUri } from '../../config/api';
 import AppHeader from '../../components/AppHeader';
 import StatCard from '../../components/StatCard';
 import StatusBadge from '../../components/StatusBadge';
@@ -159,6 +159,12 @@ export default function AdminOrderScreen() {
               <Ionicons name="time-outline" size={14} color="#2E7D32" />
               <Text style={S.addressText}>{item.deliveryTimeSlot || 'Delivery slot not set'}</Text>
             </View>
+            {item.landmarkImage ? (
+              <View style={{ marginTop: 8 }}>
+                <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '700', marginBottom: 4 }}>Landmark</Text>
+                <Image source={{ uri: getImageUri(item.landmarkImage) }} style={{ width: '100%', height: 120, borderRadius: 8 }} />
+              </View>
+            ) : null}
           </View>
         )}
 

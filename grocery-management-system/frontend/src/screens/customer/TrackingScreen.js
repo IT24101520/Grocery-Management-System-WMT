@@ -1,11 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  RefreshControl,
+  RefreshControl, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import api from '../../config/api';
+import api, { getImageUri } from '../../config/api';
 import AppHeader from '../../components/AppHeader';
 import EmptyState from '../../components/EmptyState';
 import StatusBadge from '../../components/StatusBadge';
@@ -133,6 +133,13 @@ export default function TrackingScreen({ route }) {
                       <Text style={S.infoLabel}>Estimated Delivery</Text>
                       <Text style={S.infoValue}>{fmtDate(activeRecord.estimatedDelivery)}</Text>
                     </View>
+                  </View>
+                ) : null}
+
+                {activeRecord.confirmationImage ? (
+                  <View style={{ marginBottom: 12 }}>
+                    <Text style={[S.infoLabel, { marginBottom: 6 }]}>Delivery Confirmation</Text>
+                    <Image source={{ uri: getImageUri(activeRecord.confirmationImage) }} style={{ width: '100%', height: 160, borderRadius: 8 }} />
                   </View>
                 ) : null}
 

@@ -1,11 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  RefreshControl, Modal, TextInput, ActivityIndicator, Alert,
+  RefreshControl, Modal, TextInput, ActivityIndicator, Alert, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import api from '../../config/api';
+import api, { getImageUri } from '../../config/api';
 import AppHeader from '../../components/AppHeader';
 import EmptyState from '../../components/EmptyState';
 import StatusBadge from '../../components/StatusBadge';
@@ -86,6 +86,12 @@ export default function PaymentHistoryScreen({ navigation }) {
         <View style={S.referenceBox}>
           <Ionicons name="receipt-outline" size={14} color="#2E7D32" />
           <Text style={S.referenceText}>Ref: {item.transactionReference}</Text>
+        </View>
+      ) : null}
+
+      {item.transactionImage ? (
+        <View style={{ marginTop: 10 }}>
+          <Image source={{ uri: getImageUri(item.transactionImage) }} style={{ width: '100%', height: 140, borderRadius: 8 }} />
         </View>
       ) : null}
 

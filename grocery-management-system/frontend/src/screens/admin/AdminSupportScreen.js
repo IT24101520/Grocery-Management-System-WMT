@@ -2,11 +2,11 @@ import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   Modal, ActivityIndicator, Alert, RefreshControl, ScrollView,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import api from '../../config/api';
+import api, { getImageUri } from '../../config/api';
 import AppHeader from '../../components/AppHeader';
 import StatCard from '../../components/StatCard';
 import StatusBadge from '../../components/StatusBadge';
@@ -121,6 +121,13 @@ export default function AdminSupportScreen() {
 
         {/* Description preview */}
         <Text style={S.descPreview} numberOfLines={1}>{item.description}</Text>
+
+        {item.issueImage ? (
+          <View style={{ marginTop: 8, marginBottom: 4 }}>
+            <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '700', marginBottom: 4 }}>Issue Image</Text>
+            <Image source={{ uri: getImageUri(item.issueImage) }} style={{ width: '100%', height: 120, borderRadius: 8 }} />
+          </View>
+        ) : null}
 
         {/* Actions */}
         <View style={S.actionRow}>

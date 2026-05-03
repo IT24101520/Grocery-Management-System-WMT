@@ -147,7 +147,7 @@ const createStripePaymentIntent = async (req, res) => {
 
 // FIX #8: prevent duplicate payments for same order
 const makePayment = async (req, res) => {
-  const { orderId, amount, method, transactionReference, stripePaymentIntentId, paymentNote } = req.body;
+  const { orderId, amount, method, transactionReference, stripePaymentIntentId, paymentNote, transactionImageBase64 } = req.body;
 
   if (!orderId || amount === undefined) {
     return res.status(400).json({ message: "orderId and amount are required" });
@@ -185,6 +185,7 @@ const makePayment = async (req, res) => {
       amount,
       method,
       transactionReference: transactionReference?.trim(),
+      transactionImage: transactionImageBase64,
       stripePaymentIntentId: stripePaymentIntentId?.trim(),
       paymentNote: paymentNote?.trim(),
       status: "Pending",

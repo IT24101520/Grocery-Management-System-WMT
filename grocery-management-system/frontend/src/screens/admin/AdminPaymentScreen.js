@@ -1,11 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, RefreshControl,
+  ActivityIndicator, Alert, RefreshControl, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import api from '../../config/api';
+import api, { getImageUri } from '../../config/api';
 import AppHeader from '../../components/AppHeader';
 import StatCard from '../../components/StatCard';
 import StatusBadge from '../../components/StatusBadge';
@@ -119,6 +119,9 @@ export default function AdminPaymentScreen() {
               <Text style={S.referenceLabel}>Transaction Reference</Text>
             </View>
             <Text style={S.referenceValue}>{item.transactionReference || 'No reference entered'}</Text>
+            {item.transactionImage ? (
+              <Image source={{ uri: getImageUri(item.transactionImage) }} style={{ width: '100%', height: 120, borderRadius: 8, marginTop: 8 }} />
+            ) : null}
           </View>
         )}
 

@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   ActivityIndicator, Alert, Modal, TextInput,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../../config/api';
+import api, { getImageUri } from '../../config/api';
 import AppHeader from '../../components/AppHeader';
 import StatusBadge from '../../components/StatusBadge';
 import GreenButton from '../../components/GreenButton';
@@ -188,6 +188,12 @@ export default function OrderDetailScreen({ route, navigation }) {
             <Text style={S.cardTitle}>Delivery Address</Text>
           </View>
           <Text style={S.addressText}>{order.deliveryAddress}</Text>
+          {order.landmarkImage ? (
+            <View style={{ marginTop: 12 }}>
+              <Text style={S.metaLabel}>Landmark</Text>
+              <Image source={{ uri: getImageUri(order.landmarkImage) }} style={{ width: '100%', height: 140, borderRadius: 8, marginTop: 4 }} />
+            </View>
+          ) : null}
         </View>
 
         {/* FIX #17: show Confirm OR Edit+Cancel — never both simultaneously */}

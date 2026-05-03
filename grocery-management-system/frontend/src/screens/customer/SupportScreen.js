@@ -2,12 +2,12 @@ import React, { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   ActivityIndicator, Alert, RefreshControl,
-  KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback,
+  KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from '@react-navigation/native';
-import api from '../../config/api';
+import api, { getImageUri } from '../../config/api';
 import AppHeader from '../../components/AppHeader';
 import InputField from '../../components/InputField';
 import GreenButton from '../../components/GreenButton';
@@ -226,6 +226,12 @@ export default function SupportScreen() {
                   <StatusBadge status={toStatusBadge(ticket.status)} />
                   <Text style={S.ticketDate}>{fmt(ticket.createdAt)}</Text>
                 </View>
+
+                {ticket.issueImage ? (
+                  <View style={{ marginTop: 10 }}>
+                    <Image source={{ uri: getImageUri(ticket.issueImage) }} style={{ width: '100%', height: 120, borderRadius: 8 }} />
+                  </View>
+                ) : null}
 
                 {ticket.adminResponse ? (
                   <View style={S.adminReply}>

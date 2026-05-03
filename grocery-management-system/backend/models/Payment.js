@@ -21,6 +21,7 @@ const paymentSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  transactionImage: { type: String },
   stripePaymentIntentId: {
     type: String,
     trim: true,
