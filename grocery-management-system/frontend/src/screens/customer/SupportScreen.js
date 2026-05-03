@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from '@react-navigation/native';
 import api from '../../config/api';
 import AppHeader from '../../components/AppHeader';
@@ -35,6 +36,7 @@ export default function SupportScreen() {
   const [title, setTitle]           = useState('');
   const [category, setCategory]     = useState('');
   const [description, setDescription] = useState('');
+  const [issue, setIssue]             = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess]       = useState(false);
   const [tickets, setTickets]       = useState([]);
@@ -55,8 +57,12 @@ export default function SupportScreen() {
     if (!title || !category || !description) { Alert.alert('Required', 'All fields are required'); return; }
     setSubmitting(true);
     try {
-      await api.post('/support', { title, category, description });
-      setTitle(''); setCategory(''); setDescription('');
+      const payload = { title, category, description };
+      if (issue) {
+        payload.issueImageBase64 = `data:${issue.mimeType || 'image/jpeg'};base64,${issue.base64}`;
+      }
+      await api.post('/support', payload);
+      setTitle(''); setCategory(''); setDescription(''); setIssue(null);
       setSuccess(true);
       fetchTickets();
       setTimeout(() => setSuccess(false), 3000);
@@ -153,6 +159,33 @@ export default function SupportScreen() {
             multiline
             numberOfLines={4}
           />
+
+          <Text style={S.fieldLabel}>issue</Text>
+          {issue?.uri ? (
+            <TouchableOpacity style={S.imagePreviewWrap} onPress={async () => {
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'], allowsEditing: true, aspect: [4, 3], quality: 0.7, base64: true,
+              });
+              if (!result.canceled) setIssue(result.assets[0]);
+            }} activeOpacity={0.85}>
+              <Image source={{ uri: issue.uri }} style={S.imagePreview} />
+              <View style={S.imageOverlay}>
+                <Ionicons name="camera-outline" size={20} color="#ffffff" />
+                <Text style={S.imageOverlayText}>Change Photo</Text>
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={S.imagePicker} onPress={async () => {
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'], allowsEditing: true, aspect: [4, 3], quality: 0.7, base64: true,
+              });
+              if (!result.canceled) setIssue(result.assets[0]);
+            }} activeOpacity={0.8}>
+              <Ionicons name="camera-outline" size={32} color="#94a3b8" />
+              <Text style={S.imagePickerText}>Add Photo</Text>
+              <Text style={S.imagePickerSub}>Tap to select from gallery</Text>
+            </TouchableOpacity>
+          )}
 
           <GreenButton title="Submit Ticket" onPress={handleSubmit} loading={submitting} fullWidth />
         </View>
@@ -277,6 +310,14 @@ const S = StyleSheet.create({
   catChipActive:     { backgroundColor: '#2E7D32', borderColor: '#2E7D32' },
   catChipText:       { fontSize: 13, color: '#64748b' },
   catChipTextActive: { color: '#ffffff', fontWeight: '600' },
+
+  imagePreviewWrap: { height: 140, borderRadius: 12, overflow: 'hidden', position: 'relative', marginBottom: 16 },
+  imagePreview: { width: '100%', height: '100%', resizeMode: 'cover' },
+  imageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.45)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8 },
+  imageOverlayText: { color: '#ffffff', fontWeight: '600', fontSize: 13 },
+  imagePicker: { height: 120, borderWidth: 2, borderColor: '#cbd5e1', borderStyle: 'dashed', borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff', gap: 6, marginBottom: 16 },
+  imagePickerText: { fontSize: 14, fontWeight: '600', color: '#64748b' },
+  imagePickerSub:  { fontSize: 12, color: '#94a3b8' },
 
   // ── My tickets ──────────────────────────────────────
   ticketsHeader: {

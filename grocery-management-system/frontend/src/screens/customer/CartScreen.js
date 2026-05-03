@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CartContext } from '../../context/CartContext';
+import * as ImagePicker from 'expo-image-picker';
 import api, { getImageUri } from '../../config/api';
 import AppHeader from '../../components/AppHeader';
 import EmptyState from '../../components/EmptyState';
@@ -67,7 +68,7 @@ function CartItem({ item, onUpdateQty, onRemove }) {
   );
 }
 
-function CartFooter({ address, setAddress, cartTotal, cartStore, placeOrder, loading }) {
+function CartFooter({ address, setAddress, landmark, setLandmark, cartTotal, cartStore, placeOrder, loading }) {
   return (
     <View style={S.footer}>
       {/* Edit window note */}
@@ -96,6 +97,33 @@ function CartFooter({ address, setAddress, cartTotal, cartStore, placeOrder, loa
           multiline
           numberOfLines={2}
         />
+        
+        <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#0f172a', marginTop: 12, marginBottom: 8 }}>landmark</Text>
+        {landmark?.uri ? (
+          <TouchableOpacity style={S.imagePreviewWrap} onPress={async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ['images'], allowsEditing: true, aspect: [4, 3], quality: 0.7, base64: true,
+            });
+            if (!result.canceled) setLandmark(result.assets[0]);
+          }} activeOpacity={0.85}>
+            <Image source={{ uri: landmark.uri }} style={S.imagePreview} />
+            <View style={S.imageOverlay}>
+              <Ionicons name="camera-outline" size={20} color="#ffffff" />
+              <Text style={S.imageOverlayText}>Change Photo</Text>
+            </View>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={S.imagePicker} onPress={async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ['images'], allowsEditing: true, aspect: [4, 3], quality: 0.7, base64: true,
+            });
+            if (!result.canceled) setLandmark(result.assets[0]);
+          }} activeOpacity={0.8}>
+            <Ionicons name="camera-outline" size={32} color="#94a3b8" />
+            <Text style={S.imagePickerText}>Add Photo</Text>
+            <Text style={S.imagePickerSub}>Tap to select from gallery</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Order summary */}
@@ -125,6 +153,7 @@ function CartFooter({ address, setAddress, cartTotal, cartStore, placeOrder, loa
 export default function CartScreen({ navigation }) {
   const { cartItems, cartStore, updateQuantity, removeFromCart, clearCart, cartTotal } = useContext(CartContext);
   const [address, setAddress] = useState('');
+  const [landmark, setLandmark] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const placeOrder = async () => {
@@ -137,7 +166,11 @@ export default function CartScreen({ navigation }) {
         quantity: i.quantity,
         priceAtOrder: i.price,
       }));
-      const { data: order } = await api.post('/orders', { items, deliveryAddress: address, storeId: cartStore?._id });
+      const payload = { items, deliveryAddress: address, storeId: cartStore?._id };
+      if (landmark) {
+        payload.landmarkImageBase64 = `data:${landmark.mimeType || 'image/jpeg'};base64,${landmark.base64}`;
+      }
+      const { data: order } = await api.post('/orders', payload);
       clearCart();
        Alert.alert('Order Placed! 🎉', 'Your order has been placed successfully.', [
         {
@@ -197,6 +230,8 @@ export default function CartScreen({ navigation }) {
           <CartFooter
             address={address}
             setAddress={setAddress}
+            landmark={landmark}
+            setLandmark={setLandmark}
             cartTotal={cartTotal}
             cartStore={cartStore}
             placeOrder={placeOrder}
@@ -275,4 +310,12 @@ const S = StyleSheet.create({
   summaryDivider: { height: 1, backgroundColor: '#e2e8f0', marginVertical: 10 },
   summaryTotalLabel: { fontSize: 16, fontWeight: 'bold', color: '#0f172a' },
   summaryTotalAmt:   { fontSize: 18, fontWeight: 'bold', color: '#2E7D32' },
+
+  imagePreviewWrap: { height: 140, borderRadius: 12, overflow: 'hidden', position: 'relative', marginTop: 8 },
+  imagePreview: { width: '100%', height: '100%', resizeMode: 'cover' },
+  imageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.45)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8 },
+  imageOverlayText: { color: '#ffffff', fontWeight: '600', fontSize: 13 },
+  imagePicker: { height: 120, borderWidth: 2, borderColor: '#cbd5e1', borderStyle: 'dashed', borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff', gap: 6, marginTop: 8 },
+  imagePickerText: { fontSize: 14, fontWeight: '600', color: '#64748b' },
+  imagePickerSub:  { fontSize: 12, color: '#94a3b8' },
 });

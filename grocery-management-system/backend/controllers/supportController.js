@@ -1,7 +1,7 @@
 const SupportTicket = require("../models/SupportTicket");
 
 const createTicket = async (req, res) => {
-  const { title, description, category } = req.body;
+  const { title, description, category, issueImageBase64 } = req.body;
   if (!title || !description || !category) {
     return res.status(400).json({ message: "Title, description, and category are required" });
   }

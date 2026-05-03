@@ -39,7 +39,7 @@ const getByOrder = async (req, res) => {
 
 // FIX #10: validate status against allowed enum values
 const updateStatus = async (req, res) => {
-  const { status, location, note } = req.body;
+  const { status, location, note, confirmationImageBase64 } = req.body;
 
   if (!status || !VALID_STATUSES.includes(status)) {
     return res.status(400).json({
@@ -53,6 +53,9 @@ const updateStatus = async (req, res) => {
 
     record.currentStatus = status;
     if (location) record.currentLocation = location;
+    if (status === 'Delivered' && confirmationImageBase64) {
+      record.confirmationImage = confirmationImageBase64;
+    }
     record.trackingHistory.push({
       status,
       location: location || record.currentLocation,

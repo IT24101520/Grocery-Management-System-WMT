@@ -2,9 +2,10 @@ import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   Modal, ScrollView, ActivityIndicator, Alert, RefreshControl,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from '@react-navigation/native';
 import api from '../../config/api';
 import AppHeader from '../../components/AppHeader';
@@ -20,7 +21,7 @@ const TABS = ['All', 'In Transit', 'Delivered'];
 
 const STATUS_OPTIONS = [
   { label: 'Order Placed',     icon: 'bag-handle-outline',      color: '#3b82f6' },
-  { label: 'Sent to Facility', icon: 'business-outline',        color: '#f59e0b' },
+  { label: 'Processing',       icon: 'business-outline',        color: '#f59e0b' },
   { label: 'Out for Delivery', icon: 'bicycle-outline',         color: '#f97316' },
   { label: 'Delivered',        icon: 'checkmark-circle-outline', color: '#2E7D32' },
 ];
@@ -42,6 +43,7 @@ export default function AdminTrackingScreen() {
   const [status, setStatus]         = useState('');
   const [location, setLocation]     = useState('');
   const [note, setNote]             = useState('');
+  const [image, setImage]           = useState(null);
   const [saving, setSaving]         = useState(false);
 
   const fetchRecords = async () => {
@@ -66,6 +68,7 @@ export default function AdminTrackingScreen() {
     setStatus(rec.currentStatus);
     setLocation(rec.currentLocation || '');
     setNote('');
+    setImage(null);
     setModal(true);
   };
 
@@ -73,7 +76,12 @@ export default function AdminTrackingScreen() {
     if (!status || !location) { Alert.alert('Required', 'Status and location are required'); return; }
     setSaving(true);
     try {
-      await api.put(`/tracking/${selected.orderId?._id || selected.orderId}/status`, { status, location, note });
+      const payload = { status, location, note };
+      if (image && status === 'Delivered') {
+        const mime = image.mimeType || 'image/jpeg';
+        payload.confirmationImageBase64 = `data:${mime};base64,${image.base64}`;
+      }
+      await api.put(`/tracking/${selected.orderId?._id || selected.orderId}/status`, payload);
       setModal(false);
       fetchRecords();
     } catch (err) {
@@ -228,6 +236,38 @@ export default function AdminTrackingScreen() {
                 multiline
                 numberOfLines={3}
               />
+              
+              {status === 'Delivered' && (
+                <View style={S.imagePickerSection}>
+                  <Text style={S.modalLabel}>confirmation</Text>
+                  {image?.uri ? (
+                    <TouchableOpacity style={S.imagePreviewWrap} onPress={async () => {
+                      const result = await ImagePicker.launchImageLibraryAsync({
+                        mediaTypes: ['images'], allowsEditing: true, aspect: [4, 3], quality: 0.7, base64: true,
+                      });
+                      if (!result.canceled) setImage(result.assets[0]);
+                    }} activeOpacity={0.85}>
+                      <Image source={{ uri: image.uri }} style={S.imagePreview} />
+                      <View style={S.imageOverlay}>
+                        <Ionicons name="camera-outline" size={20} color="#ffffff" />
+                        <Text style={S.imageOverlayText}>Change Photo</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity style={S.imagePicker} onPress={async () => {
+                      const result = await ImagePicker.launchImageLibraryAsync({
+                        mediaTypes: ['images'], allowsEditing: true, aspect: [4, 3], quality: 0.7, base64: true,
+                      });
+                      if (!result.canceled) setImage(result.assets[0]);
+                    }} activeOpacity={0.8}>
+                      <Ionicons name="camera-outline" size={32} color="#94a3b8" />
+                      <Text style={S.imagePickerText}>Add Photo</Text>
+                      <Text style={S.imagePickerSub}>Tap to select from gallery</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+
               <GreenButton title="Update Tracking" onPress={handleUpdate} loading={saving} fullWidth isAdmin />
               <View style={{ height: 24 }} />
             </ScrollView>
@@ -335,4 +375,23 @@ const S = StyleSheet.create({
   statusCardActive:      { borderColor: '#1B5E20', backgroundColor: '#ffffff' },
   statusCardLabel:       { fontSize: 12, fontWeight: '600', color: '#64748b', textAlign: 'center' },
   statusCardLabelActive: { color: '#1B5E20' },
+
+  imagePickerSection: { marginBottom: 16 },
+  imagePreviewWrap: {
+    height: 140, borderRadius: 12, overflow: 'hidden', position: 'relative',
+  },
+  imagePreview: { width: '100%', height: '100%', resizeMode: 'cover' },
+  imageOverlay: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    backgroundColor: 'rgba(0,0,0,0.45)', flexDirection: 'row',
+    alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8,
+  },
+  imageOverlayText: { color: '#ffffff', fontWeight: '600', fontSize: 13 },
+  imagePicker: {
+    height: 120, borderWidth: 2, borderColor: '#cbd5e1', borderStyle: 'dashed',
+    borderRadius: 12, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#ffffff', gap: 6,
+  },
+  imagePickerText: { fontSize: 14, fontWeight: '600', color: '#64748b' },
+  imagePickerSub:  { fontSize: 12, color: '#94a3b8' },
 });

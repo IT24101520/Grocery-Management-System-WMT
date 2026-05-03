@@ -32,6 +32,7 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: [true, "Delivery address is required"],
   },
+  landmarkImage: { type: String },
   deliveryDate: { type: Date },
   deliveryTimeSlot: {
     type: String,

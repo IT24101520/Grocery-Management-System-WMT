@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, Animated, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const STAGES = ['Order Placed', 'Sent to Facility', 'Out for Delivery', 'Delivered'];
+const STAGES = ['Order Placed', 'Processing', 'Out for Delivery', 'Delivered'];
 
 const getStageIndex = (status) => {
   if (!status) return 0;

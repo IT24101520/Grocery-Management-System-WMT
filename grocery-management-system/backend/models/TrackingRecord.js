@@ -25,10 +25,11 @@ const trackingRecordSchema = new mongoose.Schema({
   },
   currentStatus: {
     type: String,
-    enum: ["Order Placed", "Sent to Facility", "Out for Delivery", "Delivered"],
+    enum: ["Order Placed", "Processing", "Out for Delivery", "Delivered"],
     default: "Order Placed",
   },
   currentLocation: { type: String, default: "Warehouse" },
+  confirmationImage: { type: String },
   estimatedDelivery: Date,
   trackingHistory: [trackingHistorySchema],
   createdAt: { type: Date, default: Date.now },

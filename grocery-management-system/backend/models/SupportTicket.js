@@ -8,6 +8,7 @@ const supportTicketSchema = new mongoose.Schema({
   },
   title: { type: String, required: [true, "Title is required"] },
   description: { type: String, required: [true, "Description is required"] },
+  issueImage: { type: String },
   category: {
     type: String,
     enum: ["Order Issue", "Payment Issue", "Delivery Issue", "Other"],

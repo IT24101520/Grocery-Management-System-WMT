@@ -59,7 +59,7 @@ const assertOrderStockAvailable = async (items) => {
 
 // ─── Create order ─────────────────────────────────────────────
 const createOrder = async (req, res) => {
-  const { items, deliveryAddress, store, storeId, deliveryDate, deliveryTimeSlot } = req.body;
+  const { items, deliveryAddress, store, storeId, deliveryDate, deliveryTimeSlot, landmarkImageBase64 } = req.body;
 
   if (!items || !items.length || !deliveryAddress) {
     return res.status(400).json({ message: "Items and deliveryAddress are required" });
@@ -83,6 +83,7 @@ const createOrder = async (req, res) => {
       deliveryTimeSlot: DELIVERY_TIME_SLOTS.includes(deliveryTimeSlot)
         ? deliveryTimeSlot
         : DELIVERY_TIME_SLOTS[0],
+      landmarkImage: landmarkImageBase64,
       placedAt: now,
       editDeadline: new Date(now.getTime() + 3600000),
     });
