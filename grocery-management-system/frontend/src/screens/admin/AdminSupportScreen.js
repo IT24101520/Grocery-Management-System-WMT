@@ -214,6 +214,12 @@ export default function AdminSupportScreen() {
                   </View>
                   <Text style={S.ticketInfoSubject}>{selected.title}</Text>
                   <Text style={S.ticketInfoDesc}>{selected.description}</Text>
+                  {selected.issueImage ? (
+                    <View style={{ marginTop: 12 }}>
+                      <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#0f172a', marginBottom: 4 }}>Attached Image</Text>
+                      <Image source={{ uri: getImageUri(selected.issueImage) }} style={{ width: '100%', height: 140, borderRadius: 8 }} />
+                    </View>
+                  ) : null}
                 </View>
               )}
 

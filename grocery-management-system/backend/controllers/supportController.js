@@ -11,6 +11,7 @@ const createTicket = async (req, res) => {
       title,
       description,
       category,
+      issueImage: issueImageBase64,
     });
     return res.status(201).json(ticket);
   } catch (error) {
