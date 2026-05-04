@@ -255,7 +255,8 @@ const confirmOrder = async (req, res) => {
       return res.status(400).json({ message: "Order is not pending confirmation" });
     }
 
-    order.orderStatus = "Pending Processing";
+    order.orderStatus = "Placed";
+    order.confirmedAt = new Date();
     await order.save();
     return res.json(order);
   } catch (error) {
